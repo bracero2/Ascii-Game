@@ -143,13 +143,25 @@ int round(double x){
 
 void drawLine(int x1, int y1, int x2, int y2){
     
-    double delX = x2 - x1;
-    double delY = y2 - y1;
+    double dx = abs(x2 - x1);
+    short sx = (x1 < x2) ? 1 : -1;
+    double dy = -abs(y2 - y1);
+    short sy = (y1 < y2) ? 1 : -1;
+    double error = dx + dy;
+    double e2;
 
-    if (delX != 0){
-        double m = delY/delX;
-        for (int i = 0; i<delX; i++){
-            screenBuffer.at(round(y1+i*m))[x1+i] = '$';
+    while (true){
+        screenBuffer.at(round(y1))[x1] = '$';
+        e2 = 2 * error;
+        if (e2 >= dy){
+            if (x1 == x2) break;
+            error += dy;
+            x1 += sx;
+        }
+        if (e2 <= dx){
+            if (y1 == y2) break;
+            error = error + dx;
+            y1 += sy;
         }
     }
 }

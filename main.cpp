@@ -12,6 +12,7 @@ void KeyEventProc(KEY_EVENT_RECORD);
 void ResizeEventProc(WINDOW_BUFFER_SIZE_RECORD);
 void processInput(INPUT_RECORD);
 void drawLine(int x1, int y1, int x2, int y2);
+void update();
 void display();
 
 bool run = false;
@@ -55,20 +56,32 @@ int main() {
 
     thread thread_obj(inp, hStdin, irInBuf, 128, &cNumRead);
 
+    int y = 0;
+    int change = 1;
+
     while (true){
         elapsed_seconds = end-start;
         if (elapsed_seconds.count() >= 1/7){
             // puts the cursor at (0, 0)
             if (run){
                 SetConsoleCursorPosition(hConsole, coord);
-                for (string i: screenBuffer)
-                    cout << i << endl;
+                screenBuffer.assign(72, string(256, x));
+
+                drawLine(0, y, 256, 71-y);
+                drawLine(0, 71-y, 255, y);
+
+                display();
             }
 
             for (i = 0; i < cNumRead; i++)
             {
                 processInput(irInBuf[i]);
             }
+
+            if (y >= 71) change = -1;
+            else if (y <= 0) change = 1;
+            y += change;
+            
 
             start = chrono::steady_clock::now();
         }
@@ -117,6 +130,26 @@ void processInput(INPUT_RECORD type){
     }
 }
 
-void drawLine(){
+void display(){
+    for (string i: screenBuffer)
+                    cout << i << endl;
+}
+
+// I don't want to import a how library just for one function
+int round(double x){
+    if (x - (int)x > 0.5){ return x + 1; }
+    return (int)x;
+}
+
+void drawLine(int x1, int y1, int x2, int y2){
     
+    double delX = x2 - x1;
+    double delY = y2 - y1;
+
+    if (delX != 0){
+        double m = delY/delX;
+        for (int i = 0; i<delX; i++){
+            screenBuffer.at(round(y1+i*m))[x1+i] = '$';
+        }
+    }
 }
